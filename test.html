@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>test</title>
+	<link href="../_shared/demo.css" rel="stylesheet" type="text/css">
+	<script src="http://code.createjs.com/easeljs-0.8.1.min.js"></script>
+	<script>
+        
+		var stage;
+        
+        var userContainer;
+        
+        var tweetContainer;
+        
+        var timeline = new createjs.Container();
+        var friends = new createjs.Container();
+        var followers = new createjs.Container();
+        
+        var user = new createjs.Container();
+        var entities = new createjs.Container();
+        var retweet = new createjs.Container();
+        
+        var maxDepth = 5;
+        
+		function init() {
+            
+			stage = new createjs.Stage("myCanvas");
+			stage.enableMouseOver(10);
+			
+			var circle = new createjs.Shape();
+			circle.graphics.beginFill("red").drawCircle(0, 0, 50);
+			circle.x = 130;
+			circle.y = 130;
+			circle.alpha = 0.5;
+			circle.on("mouseover", handleMouseOver);
+			circle.on("mouseout", handleMouseOver);
+            
+			var label = new createjs.Text("tweet user", "22px Arial", "#000");
+            label.x = circle.x - 50;
+			label.y = circle.y - 10;
+			
+			circle.on("click", drawUserFields);
+            
+            var arrow = new createjs.Shape();
+            arrow.graphics.f("#000");
+            arrow.graphics.dp(1, 0, 1, 3);
+			
+			stage.addChild(circle, label, arrow);
+			stage.update();
+			createjs.Ticker.addEventListener("tick", stage);
+		}
+    
+		function handleMouseOver(event){
+			event.target.alpha = ((event.type=="mouseover") ? 0.75 : 0.5);
+		}
+    
+    
+    
+    function addSmallCircle(x, y, name,  container){
+        var circle = new createjs.Shape();
+        circle.graphics.beginFill("grey").drawCircle(0, 0, 15);
+        var label = new createjs.Text(name, "11px Arial", "#000");
+        circle.x = label.x = x;
+        circle.y = label.y = y;
+        circle.alpha = 0.5;
+        circle.on("click", changeQuery);
+        container.addChild(circle, label);
+    }
+    
+    function changeQuery(event){
+        event.target.alpha = 1.5 - event.target.alpha;
+    }
+    
+    function addBigCircle(x, y, name, color){
+        var circle = new createjs.Shape();
+        circle.graphics.beginFill(color).drawCircle(0, 0, 50);
+        circle.alpha = 0.5;
+        circle.on("mouseover", handleMouseOver);
+        circle.on("mouseout", handleMouseOver);
+        
+        var label = new createjs.Text(name, "22px Arial", "#000");
+        
+        circle.x = label.x = x;
+        circle.y = label.y = y;
+        
+        if(name === "timeline"){
+            circle.on("click", handleClickTimeline);
+            timeline.addChild(circle, label);
+            stage.addChild(timeline);
+        }
+        else if(name === "retweeted_status"){
+            circle.on("click", drawTweetFields);
+        }
+        else if(name === "user"){
+            circle.on("click", handleClickUser);
+            user.addChild(circle, label);
+            stage.addChild(user);
+        }
+        else if(name === "friends"){
+            circle.on("click", handleClickFriends);
+            friends.addChild(circle, label);
+            stage.addChild(friends);
+        }
+        else if(name === "followers"){
+            circle.on("click", drawUserFields);
+            followers.addChild(circle, label);
+            stage.addChild(followers);
+        }
+        else if(name === "user_mentions"){}
+        
+        else if(name === "entities"){
+            circle.on("click", drawTwtEntityFields);
+            entities.addChild(circle, label);
+            stage.addChild(entities);
+        }
+        else if(name === "retweet"){
+            circle.on("click", drawRetweetFields);
+            retweet.addChild(circle, label);
+            stage.addChild(retweet);
+        }
+        
+    }
+    
+    
+    function addArrow(fromx, fromy, tox, toy, container){
+        var lineShape = new createjs.Shape();
+        lineShape.graphics.setStrokeStyle(1).beginStroke("black").moveTo(fromx, fromy).lineTo(tox, toy);
+        container.addChild(lineShape);
+        
+    }
+    
+    <!-- display all fields of twtUser -->
+    
+    function drawUserFields(event){
+        
+        user = event.target;
+        
+        user.off("mouseover", handleMouseOver);
+        user.off("mouseout", handleMouseOver);
+        user.off("click", drawUserFields);
+        
+        addArrow(user.x + 50, user.y, user.x + 250, user.y, timeline);
+        addBigCircle(user.x + 300, user.y, "timeline", "#1e90ff");
+        
+        
+        addArrow(user.x + 35, user.y + 35, user.x + 175, user.y + 175, friends);
+        addBigCircle(user.x + 212, user.y + 212, "friends", "red");
+        
+        
+        addArrow(user.x, user.y + 50, user.x, user.y + 250, followers);
+        addBigCircle(user.x, user.y + 300, "followers", "red");
+        
+        
+        
+        userContainer = new createjs.Container();
+        
+        addSmallCircle(user.x, user.y - 95, "id", userContainer);
+        
+        addSmallCircle(user.x + 38, user.y - 87, "id_str", userContainer);
+        
+        addSmallCircle(user.x + 70, user.y - 64, "name", userContainer);
+        
+        addSmallCircle(user.x + 90, user.y - 29, "screen_name", userContainer);
+        
+        addSmallCircle(user.x + 94, user.y + 10, "description", userContainer);
+        
+        <!-- pivot -->
+        addSmallCircle(user.x + 82, user.y + 48, "created_at", userContainer);
+        
+        addSmallCircle(user.x + 56, user.y + 77, "profile_image_url", userContainer);
+        
+        addSmallCircle(user.x + 19, user.y + 93, "url", userContainer);
+        
+        addSmallCircle(user.x - 19, user.y + 93, "location", userContainer);
+        
+        addSmallCircle(user.x - 56, user.y + 77, "tweets_count", userContainer);
+        
+        <!-- pivot -->
+        addSmallCircle(user.x - 82, user.y + 48, "followers_count", userContainer);
+        
+        addSmallCircle(user.x - 94, user.y + 10, "listed_count", userContainer);
+        
+        addSmallCircle(user.x - 90, user.y - 29, "favourites_count", userContainer);
+        
+        addSmallCircle(user.x - 70, user.y - 64, "statuses_count", userContainer);
+        
+        addSmallCircle(user.x - 38, user.y - 87, "timezone", userContainer);
+      
+        stage.addChild(userContainer);
+        stage.update();
+    }
+    
+    
+    <!-- called when "timeline" clicked -->
+    function handleClickTimeline(event){
+        stage.removeChild(userContainer);
+        stage.removeChild(friends);
+        stage.removeChild(followers);
+        drawTweetFields(event);
+        stage.update();
+    }
+    
+    <!-- called when "user" clicked -->
+    function handleClickUser(event){
+        stage.removeChild(tweetContainer);
+        stage.update();
+        drawUserFields(event);
+    }
+    
+    <!-- called when "friends" clicked -->
+    function handleClickFriends(event){
+        stage.removeChild(userContainer);
+        stage.removeChild(timeline);
+        stage.removeChild(followers);
+        stage.update();
+        drawUserFields(event);
+    }
+    
+    
+    <!-- display all fields of tweet -->
+    
+    function drawTweetFields(event){
+        
+        user = event.target;
+        
+        user.off("mouseover", handleMouseOver);
+        user.off("mouseout", handleMouseOver);
+        user.off("click", drawTweetFields);
+        
+        addBigCircle(user.x + 300, user.y, "user", "red");
+        
+        addArrow(user.x + 50, user.y, user.x + 250, user.y);
+        
+        addBigCircle(user.x + 212, user.y + 212, "entities", "yellow");
+        
+        addArrow(user.x + 35, user.y + 35, user.x + 175, user.y + 175);
+        
+        addBigCircle(user.x, user.y + 300, "retweet", "green");
+        
+        addArrow(user.x, user.y + 50, user.x, user.y + 250);
+        
+        tweetContainer = new createjs.Container();
+        
+        addSmallCircle(user.x, user.y - 95, "id", tweetContainer);
+        
+        addSmallCircle(user.x + 67, user.y - 67, "id_str", tweetContainer);
+        
+        addSmallCircle(user.x + 95, user.y, "created_at", tweetContainer);
+        
+        addSmallCircle(user.x + 67, user.y + 67, "text", tweetContainer);
+        
+        addSmallCircle(user.x, user.y + 95, "retweet_count", tweetContainer);
+        
+        addSmallCircle(user.x - 67, user.y + 67, "in_reply_to_user_id_str", tweetContainer);
+        
+        addSmallCircle(user.x - 95, user.y, "in_reply_to_status_id_str", tweetContainer);
+        
+        addSmallCircle(user.x - 67, user.y - 67, "in_reply_to_screen_name", tweetContainer);
+        
+        stage.addChild(tweetContainer);
+        stage.update();
+    }
+    
+    function drawTwtEntityFields(event){
+        user = event.target;
+        
+        addBigCircle(user.x + 300, user.y, "user_mentions", "red");
+        addArrow(user.x + 50, user.y, user.x + 250, user.y);
+        
+        addSmallCircle(user.x, user.y - 95, "urls");
+        addSmallCircle(user.x - 95, user.y, "hashtags");
+    }
+    
+    function drawRetweetFields(event){
+        user = event.target;
+        
+        addBigCircle(user.x + 300, user.y, "entities", "yellow");
+        
+        addArrow(user.x + 50, user.y, user.x + 250, user.y);
+        
+        addBigCircle(user.x + 212, user.y + 212, "retweeted_status", "#1e90ff");
+        
+        addArrow(user.x + 35, user.y + 35, user.x + 175, user.y + 175);
+        
+        addBigCircle(user.x, user.y + 300, "user", "red");
+        
+        addArrow(user.x, user.y + 50, user.x, user.y + 250);
+    }
+    
+    
+    
+	</script>
+</head>
+
+<body onload="init();">
+	<canvas id="myCanvas" width="1200" height="800" style="display:block; margin-left:auto; margin-right:auto; border:5px solid #d3d3d3;">
+	</canvas>
+</body>
+</html>
+
