@@ -1,0 +1,11 @@
+canvas{
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    border: 5px solid #d3d3d3;
+}
+
+p{
+    margin-top: 1px;
+    margin-bottom: 1px;
+}

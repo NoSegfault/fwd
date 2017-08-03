@@ -1,9 +1,15 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>test</title>
-	<link href="../_shared/demo.css" rel="stylesheet" type="text/css">
+    <title>test</title>
+    <link rel="stylesheet" type="text/css" href="test.css">
+    
+    <!-- import AngularJS-->
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.4/angular.min.js"></script>
+    
+    <!-- import EaselJS -->
 	<script src="http://code.createjs.com/easeljs-0.8.1.min.js"></script>
+    
 	<script>
         
 		var stage;
@@ -13,6 +19,7 @@
         var tweetContainer;
         var twtEntityContainer;
         var retweetContainer;
+        var geoContainer;
         
         var timeline;
         var friends;
@@ -24,13 +31,20 @@
         
         var user_mentions;
         var retweeted_status;
-        
-        var maxDepth = 5;
+        var contained_within;
         
         var currWidth, currHeight;
         
         var txt;
         var mid;
+        var media;
+        
+        var static;
+        
+        var twtUserColor, tweetColor, twtGeoColor;
+        
+        var queryUserParameters;
+        var count;
         
 		function init() {
             
@@ -38,44 +52,137 @@
             currHeight = 600;
             canvas = document.getElementById("myCanvas");
             
-            txt = new createjs.Text("{\n  twitter{\n    queryUser(){\n    }\n  }\n}", "15px Arial", "black");
+            count = document.getElementById("common");
+            
+            queryUserParameters = document.getElementById("form");
+            
+            stage = new createjs.Stage("myCanvas");
+            stage.enableMouseOver(10);
+            
+            twtUserColor = "red";
+            tweetColor = "#1e90ff";
+            twtGeoColor = "brown";
+            
+            var rect0 = new createjs.Shape();
+            rect0.on("click", handleClickQueryUser);
+            var rect1 = new createjs.Shape();
+            rect1.on("click", handleClickQueryTweet);
+            var rect2 = new createjs.Shape();
+            rect2.on("click", handleClickQueryGeo);
+            
+            static = new createjs.Container();
+            
+            rects = [rect0, rect1, rect2];
+            for(i = 0; i < rects.length; i++){
+                rects[i].x = 160 + 150 * i;
+                rects[i].y = 20;
+                rects[i].graphics.beginFill("blue").drawRect(0, 0, 100, 50);
+                rects[i].alpha = 0.4;
+                static.addChild(rects[i]);
+            }
+            
+            var label0 = new createjs.Text("queryUser", "20px Arial", "black");
+            var label1 = new createjs.Text("queryTweet", "19px Arial", "black");
+            var label2 = new createjs.Text("queryGeo", "20px Arial", "black");
+            labels = [label0, label1, label2];
+            for(i = 0; i < rects.length; i++){
+                labels[i].x = rects[i].x;
+                labels[i].y = rects[i].y + 10;
+                static.addChild(labels[i]);
+            }
+            
+            stage.addChild(static);
+            
+            txt = new createjs.Text("{\n  twitter{\n  }\n}", "15px Arial", "black");
             txt.x = currWidth - 200;
             mid = "";
             
-            var media = new createjs.Text("stackExchange\n\nmediaWiki\n\ninstagram\n\npinterest\n\ntwitter\n\nfacebook\n\nflickr\n\nspotify\n\nyoutube\n\nreddit\n\nweibo\n\ntumblr", "15px Arial", "black");
+            media = new createjs.Text("stackExchange\n\nmediaWiki\n\ninstagram\n\npinterest\n\ntwitter\n\nfacebook\n\nflickr\n\nspotify\n\nyoutube\n\nreddit\n\nweibo\n\ntumblr", "15px Arial", "black");
             media.x = 20;
             media.y = 120;
             
-			stage = new createjs.Stage("myCanvas");
-			stage.enableMouseOver(10);
-            
-			var circle = new createjs.Shape();
-			circle.graphics.beginFill("red").drawCircle(0, 0, 45);
-			circle.x = 250;
-			circle.y = 130;
-			circle.alpha = 0.5;
-			circle.on("mouseover", handleMouseOver);
-			circle.on("mouseout", handleMouseOver);
-			var label = new createjs.Text("queryUser", "22px Arial", "#000");
-            label.x = circle.x - 50;
-			label.y = circle.y - 10;
-			
-			circle.on("click", drawTwtUserFields);
-            
-            var arrow = new createjs.Shape();
-            arrow.graphics.f("#000");
-            arrow.graphics.dp(1, 0, 1, 3);
-            
-			stage.addChild(circle, label, arrow, txt, media);
-            
-            
+			stage.addChild(txt, media);
+ 
 			stage.update();
 			createjs.Ticker.addEventListener("tick", stage);
 		}
     
-		function handleMouseOver(event){
-			event.target.alpha = ((event.type=="mouseover") ? 0.75 : 0.5);
-		}
+    function handleMouseOver(event){
+        event.target.alpha = ((event.type=="mouseover") ? 0.75 : 0.5);
+    }
+    
+    function handleClickQueryUser(){
+        stage.removeAllChildren();
+        stage.addChild(txt, media, static);
+        var circle = new createjs.Shape();
+        circle.graphics.beginFill(twtUserColor).drawCircle(0, 0, 60);
+        circle.x = 250;
+        circle.y = 180;
+        circle.alpha = 0.5;
+        circle.on("mouseover", handleMouseOver);
+        circle.on("mouseout", handleMouseOver);
+        circle.on("click", drawTwtUserFields);
+        
+        var label = new createjs.Text("queryUser", "20px Arial", "#000");
+        label.x = circle.x - 50;
+        label.y = circle.y - 35;
+        
+        txt.text = "{\n  twitter{\n    queryUser(){\n" + mid + "    }\n  }\n}";
+        
+        stage.addChild(circle, label);
+        
+        queryUserParameters.style.display = "inline";
+        
+        stage.update();
+    }
+    
+    function handleClickQueryTweet(){
+        stage.removeAllChildren();
+        stage.addChild(txt, media, static);
+        queryUserParameters.style.display = "none";
+        
+        var circle = new createjs.Shape();
+        circle.graphics.beginFill(tweetColor).drawCircle(0, 0, 60);
+        circle.x = 250;
+        circle.y = 180;
+        circle.alpha = 0.5;
+        circle.on("mouseover", handleMouseOver);
+        circle.on("mouseout", handleMouseOver);
+        circle.on("click", drawTweetFields);
+        
+        var label = new createjs.Text("queryTweet", "20px Arial", "#000");
+        label.x = circle.x - 50;
+        label.y = circle.y - 35;
+        
+        txt.text = "{\n  twitter{\n    queryTweet(){\n" + mid + "    }\n  }\n}";
+        
+        stage.addChild(circle, label);
+        
+        stage.update();
+        
+    }
+    
+    function handleClickQueryGeo(){
+        stage.removeAllChildren();
+        stage.addChild(txt, media, static);
+        var circle = new createjs.Shape();
+        circle.graphics.beginFill(twtGeoColor).drawCircle(0, 0, 60);
+        circle.x = 250;
+        circle.y = 180;
+        circle.alpha = 0.5;
+        circle.on("mouseover", handleMouseOver);
+        circle.on("mouseout", handleMouseOver);
+        circle.on("click", drawTwtGeoFields);
+        
+        var label = new createjs.Text("queryGeo", "20px Arial", "#000");
+        label.x = circle.x - 50;
+        label.y = circle.y - 35;
+        
+        txt.text = "{\n  twitter{\n    queryGeo(){\n" + mid + "    }\n  }\n}";
+        
+        stage.addChild(circle, label);
+        stage.update();
+    }
     
     
     
@@ -108,65 +215,79 @@
         }
         
         var circle = new createjs.Shape();
-        circle.graphics.beginFill(color).drawCircle(0, 0, 45);
+        circle.graphics.beginFill(color).drawCircle(0, 0, 60);
         circle.alpha = 0.5;
         circle.on("mouseover", handleMouseOver);
         circle.on("mouseout", handleMouseOver);
         
-        var label = new createjs.Text(name, "22px Arial", "#000");
+        var label = new createjs.Text(name, "20px Arial", "#000");
         
         circle.x = label.x = x;
         circle.y = label.y = y;
-        
-        if(name === "timeline"){
-            circle.on("click", handleClickTimeline);
-            timeline = new createjs.Container();
-            timeline.addChild(circle, label);
-            stage.addChild(timeline);
+        switch(name){
+            case "timeline":
+                circle.on("click", handleClickTimeline);
+                timeline = new createjs.Container();
+                timeline.addChild(circle, label);
+                stage.addChild(timeline);
+                break;
+            
+            case "friends":
+                circle.on("click", handleClickFriends);
+                friends = new createjs.Container();
+                friends.addChild(circle, label);
+                stage.addChild(friends);
+                break;
+                
+            case "followers":
+                circle.on("click", handleClickFollowers);
+                followers = new createjs.Container();
+                followers.addChild(circle, label);
+                stage.addChild(followers);
+                break;
+                
+            case "user":
+                circle.on("click", handleClickUser);
+                user = new createjs.Container();
+                user.addChild(circle, label);
+                stage.addChild(user);
+                break;
+                
+            case "entities":
+                circle.on("click", handleClickEntities);
+                entities = new createjs.Container();
+                entities.addChild(circle, label);
+                stage.addChild(entities);
+                break;
+                
+            case "retweet":
+                circle.on("click", handleClickRetweet);
+                retweet = new createjs.Container();
+                retweet.addChild(circle, label);
+                stage.addChild(retweet);
+                break;
+                
+            case "user_mentions":
+                circle.on("click", handleClickUserMentions);
+                user_mentions = new createjs.Container();
+                user_mentions.addChild(circle, label);
+                stage.addChild(user_mentions);
+                break;
+                
+            case "retweeted_status":
+                circle.on("click", handleClickRetweetedStatus);
+                retweeted_status = new createjs.Container();
+                retweeted_status.addChild(circle, label);
+                stage.addChild(retweeted_status);
+                break;
+                
+            case "contained_within":
+                circle.on("click", handleClickContainedWithin);
+                contained_within = new createjs.Container();
+                contained_within.addChild(circle, label);
+                stage.addChild(contained_within);
+                break;
         }
-        else if(name === "friends"){
-            circle.on("click", handleClickFriends);
-            friends = new createjs.Container();
-            friends.addChild(circle, label);
-            stage.addChild(friends);
-        }
-        else if(name === "followers"){
-            circle.on("click", handleClickFollowers);
-            followers = new createjs.Container();
-            followers.addChild(circle, label);
-            stage.addChild(followers);
-        }
-        else if(name === "user"){
-            circle.on("click", handleClickUser);
-            user = new createjs.Container();
-            user.addChild(circle, label);
-            stage.addChild(user);
-        }
-        else if(name === "entities"){
-            circle.on("click", handleClickEntities);
-            entities = new createjs.Container();
-            entities.addChild(circle, label);
-            stage.addChild(entities);
-        }
-        else if(name === "retweet"){
-            circle.on("click", handleClickRetweet);
-            retweet = new createjs.Container();
-            retweet.addChild(circle, label);
-            stage.addChild(retweet);
-        }
-        else if(name === "user_mentions"){
-            circle.on("click", handleClickUserMentions);
-            user_mentions = new createjs.Container();
-            user_mentions.addChild(circle, label);
-            stage.addChild(user_mentions);
-        }
-        else if(name === "retweeted_status"){
-            circle.on("click", handleClickRetweetedStatus);
-            retweeted_status = new createjs.Container();
-            retweeted_status.addChild(circle, label);
-            stage.addChild(retweeted_status); 
-        }
-        
     }
     
     
@@ -184,18 +305,14 @@
         
         var obj = event.target;
         
-        obj.off("mouseover", handleMouseOver);
-        obj.off("mouseout", handleMouseOver);
+        addBigCircle(obj.x + 300, obj.y, "timeline", tweetColor);
+        addArrow(obj.x + 50, obj.y, obj.x + 240, obj.y, timeline);
         
-        
-        addBigCircle(obj.x + 300, obj.y, "timeline", "#1e90ff");
-        addArrow(obj.x + 50, obj.y, obj.x + 250, obj.y, timeline);
-        
-        addBigCircle(obj.x + 212, obj.y + 212, "friends", "red");
-        addArrow(obj.x + 35, obj.y + 35, obj.x + 175, obj.y + 175, friends);
+        addBigCircle(obj.x + 212, obj.y + 212, "friends", twtUserColor);
+        addArrow(obj.x + 35, obj.y + 35, obj.x + 169, obj.y + 169, friends);
         
         addBigCircle(obj.x, obj.y + 300, "followers", "red");
-        addArrow(obj.x, obj.y + 50, obj.x, obj.y + 250, followers);
+        addArrow(obj.x, obj.y + 50, obj.x, obj.y + 240, followers);
         
         userContainer = new createjs.Container();
         
@@ -235,6 +352,25 @@
         stage.update();
     }
     
+    <!-- display all fields of twtGeo -->
+    function drawTwtGeoFields(event){
+        var obj = event.target;
+        addBigCircle(obj.x + 300, obj.y, "contained_within", twtGeoColor);
+        addArrow(obj.x + 50, obj.y, obj.x + 250, obj.y, contained_within);
+        
+        geoContainer = new createjs.Container();
+        addSmallCircle(obj.x, obj.y - 95, "attributes", geoContainer);
+        addSmallCircle(obj.x + 67, obj.y - 67, "country", geoContainer);
+        addSmallCircle(obj.x + 95, obj.y, "country_code", geoContainer);
+        addSmallCircle(obj.x + 67, obj.y + 67, "full_name", geoContainer);
+        addSmallCircle(obj.x, obj.y + 95, "id", geoContainer);
+        addSmallCircle(obj.x - 67, obj.y + 67, "name", geoContainer);
+        addSmallCircle(obj.x - 95, obj.y, "place_type", geoContainer);
+        addSmallCircle(obj.x - 67, obj.y - 67, "url", geoContainer);
+        stage.addChild(geoContainer);
+        stage.update();
+        
+    }
     
     <!-- called when "timeline" clicked -->
     function handleClickTimeline(event){
@@ -308,16 +444,17 @@
         
     }
     
+    function handleClickContainedWithin(event){
+        stage.removeChild(geoContainer);
+        stage.update();
+        drawTwtGeoFields(event);
+    }
     
     <!-- display all fields of tweet -->
     
     function drawTweetFields(event){
         
         var obj = event.target;
-        
-        obj.off("mouseover", handleMouseOver);
-        obj.off("mouseout", handleMouseOver);
-        
         
         addBigCircle(obj.x + 300, obj.y, "user", "red");
         addArrow(obj.x + 50, obj.y, obj.x + 250, obj.y, user);
@@ -412,8 +549,27 @@
 </head>
 
 <body onload="init();">
-	<canvas id="myCanvas" width="1200" height="600" style="display:block; margin-left:auto; margin-right:auto; border:5px solid #d3d3d3;">
-	</canvas>
+    <div class="main">
+        <canvas id="myCanvas" width="1200" height="600">
+        </canvas>
+        <div id='form' style="display:none; position: absolute; z-index:1; left: 240px; top: 180px; width:170px; height:20px;">
+            <div ng-app="myApp" ng-controller="myCtrl">
+                <p>q: <input ng-model="keyword" type='text' style="width: 50%;" />{{keyword}}</p>
+                <div id="common">
+                    <p>count: <input type='number' name='Count' min='0' style="width: 30%;" /></p>
+                </div>
+                <p>page: <input type='number' name='Count' min='0' style="width: 30%;" /></p>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        var app = angular.module('myApp', []);
+        app.controller('myCtrl', function($scope) {
+            $scope.keyword = "";
+        });
+    </script>
+
 </body>
 </html>
 
