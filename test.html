@@ -8,7 +8,7 @@
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.4/angular.min.js"></script>
     
     <!-- import EaselJS -->
-	<script src="http://code.createjs.com/easeljs-0.8.1.min.js"></script>
+    <script src="http://code.createjs.com/easeljs-0.8.1.min.js"></script>
     
 	<script>
         
@@ -44,17 +44,25 @@
         var twtUserColor, tweetColor, twtGeoColor;
         
         var queryUserParameters;
+        var queryTweetParameters;
+        var queryGeoParameters;
         var count;
+        
+        var main, para;
         
 		function init() {
             
             currWidth = 1200;
-            currHeight = 600;
+            currHeight = 550;
             canvas = document.getElementById("myCanvas");
             
             count = document.getElementById("common");
             
-            queryUserParameters = document.getElementById("form");
+            queryUserParameters = document.getElementById("user");
+            queryTweetParameters = document.getElementById("tweet");
+            queryGeoParameters = document.getElementById("geo");
+            
+            main = document.getElementById("main");
             
             stage = new createjs.Stage("myCanvas");
             stage.enableMouseOver(10);
@@ -93,15 +101,20 @@
             
             stage.addChild(static);
             
-            txt = new createjs.Text("{\n  twitter{\n  }\n}", "15px Arial", "black");
-            txt.x = currWidth - 200;
+            txt = "{twitter{  }}";
             mid = "";
             
             media = new createjs.Text("stackExchange\n\nmediaWiki\n\ninstagram\n\npinterest\n\ntwitter\n\nfacebook\n\nflickr\n\nspotify\n\nyoutube\n\nreddit\n\nweibo\n\ntumblr", "15px Arial", "black");
             media.x = 20;
             media.y = 120;
             
-			stage.addChild(txt, media);
+            // display query string below canvas
+            para = document.createElement("p");
+            var txtNode = document.createTextNode(txt);
+            para.appendChild(txtNode);
+            main.appendChild(para);
+            
+			stage.addChild(media);
  
 			stage.update();
 			createjs.Ticker.addEventListener("tick", stage);
@@ -113,9 +126,9 @@
     
     function handleClickQueryUser(){
         stage.removeAllChildren();
-        stage.addChild(txt, media, static);
+        stage.addChild(media, static);
         var circle = new createjs.Shape();
-        circle.graphics.beginFill(twtUserColor).drawCircle(0, 0, 60);
+        circle.graphics.beginFill(twtUserColor).drawCircle(0, 0, 65);
         circle.x = 250;
         circle.y = 180;
         circle.alpha = 0.5;
@@ -127,22 +140,24 @@
         label.x = circle.x - 50;
         label.y = circle.y - 35;
         
-        txt.text = "{\n  twitter{\n    queryUser(){\n" + mid + "    }\n  }\n}";
+        txt = "{  twitter{    queryUser(q:&quot; &quot;){" + mid + "    }  }}";
+        para.innerHTML = txt;
         
         stage.addChild(circle, label);
-        
-        queryUserParameters.style.display = "inline";
-        
         stage.update();
+        
+        queryTweetParameters.style.display = "none";
+        queryGeoParameters.style.display = "none";
+        queryUserParameters.style.display = "inline";
     }
     
     function handleClickQueryTweet(){
         stage.removeAllChildren();
-        stage.addChild(txt, media, static);
+        stage.addChild(media, static);
         queryUserParameters.style.display = "none";
         
         var circle = new createjs.Shape();
-        circle.graphics.beginFill(tweetColor).drawCircle(0, 0, 60);
+        circle.graphics.beginFill(tweetColor).drawCircle(0, 0, 65);
         circle.x = 250;
         circle.y = 180;
         circle.alpha = 0.5;
@@ -154,19 +169,22 @@
         label.x = circle.x - 50;
         label.y = circle.y - 35;
         
-        txt.text = "{\n  twitter{\n    queryTweet(){\n" + mid + "    }\n  }\n}";
+        txt = "{\n  twitter{\n    queryTweet(){\n" + mid + "    }\n  }\n}";
+        para.innerHTML = txt;
         
         stage.addChild(circle, label);
-        
         stage.update();
         
+        queryUserParameters.style.display = "none";
+        queryGeoParameters.style.display = "none";
+        queryTweetParameters.style.display = "inline";
     }
     
     function handleClickQueryGeo(){
         stage.removeAllChildren();
-        stage.addChild(txt, media, static);
+        stage.addChild(media, static);
         var circle = new createjs.Shape();
-        circle.graphics.beginFill(twtGeoColor).drawCircle(0, 0, 60);
+        circle.graphics.beginFill(twtGeoColor).drawCircle(0, 0, 65);
         circle.x = 250;
         circle.y = 180;
         circle.alpha = 0.5;
@@ -178,10 +196,15 @@
         label.x = circle.x - 50;
         label.y = circle.y - 35;
         
-        txt.text = "{\n  twitter{\n    queryGeo(){\n" + mid + "    }\n  }\n}";
+        txt = "{\n  twitter{\n    queryGeo(){\n" + mid + "    }\n  }\n}";
+        para.innerHTML = txt;
         
         stage.addChild(circle, label);
         stage.update();
+        
+        queryUserParameters.style.display = "none";
+        queryTweetParameters.style.display = "none";
+        queryGeoParameters.style.display = "inline";
     }
     
     
@@ -200,14 +223,19 @@
     
     function changeQuery(event){
         event.target.alpha = 1.5 - event.target.alpha;
-        mid += event.target.name + "\n";
-        txt.text = "{\n  twitter{\n    queryUser(){\n" + mid + "    }\n  }\n}";
+        
+        if(event.target.state != 1){ // if this field is not selected yet
+            mid += event.target.name + " ";
+            event.target.state = 1;
+        }
+        txt = "{  twitter{    queryUser(){" + mid + "    }  }}";
+        para.innerHTML = txt;
         stage.update();
     }
     
     function addBigCircle(x, y, name, color){
         
-        if(x > currWidth){
+        if(x > currWidth - 55){
             resizeWidth();
         }
         if(y > currHeight){
@@ -215,21 +243,25 @@
         }
         
         var circle = new createjs.Shape();
-        circle.graphics.beginFill(color).drawCircle(0, 0, 60);
+        circle.graphics.beginFill(color).drawCircle(0, 0, 65);
         circle.alpha = 0.5;
         circle.on("mouseover", handleMouseOver);
         circle.on("mouseout", handleMouseOver);
         
         var label = new createjs.Text(name, "20px Arial", "#000");
         
-        circle.x = label.x = x;
-        circle.y = label.y = y;
+        circle.x = x;
+        circle.y = y;
+        label.x = x - 30;
+        label.y = y - 30;
+        
         switch(name){
             case "timeline":
                 circle.on("click", handleClickTimeline);
                 timeline = new createjs.Container();
                 timeline.addChild(circle, label);
                 stage.addChild(timeline);
+                addParaCount(x,y);
                 break;
             
             case "friends":
@@ -237,6 +269,7 @@
                 friends = new createjs.Container();
                 friends.addChild(circle, label);
                 stage.addChild(friends);
+                addParaCount(x,y);
                 break;
                 
             case "followers":
@@ -244,6 +277,7 @@
                 followers = new createjs.Container();
                 followers.addChild(circle, label);
                 stage.addChild(followers);
+                addParaCount(x,y);
                 break;
                 
             case "user":
@@ -265,6 +299,7 @@
                 retweet = new createjs.Container();
                 retweet.addChild(circle, label);
                 stage.addChild(retweet);
+                addParaCount(x,y);
                 break;
                 
             case "user_mentions":
@@ -284,10 +319,25 @@
             case "contained_within":
                 circle.on("click", handleClickContainedWithin);
                 contained_within = new createjs.Container();
+                label.x = x - 65;
+                label.y = y - 10;
                 contained_within.addChild(circle, label);
                 stage.addChild(contained_within);
                 break;
         }
+        
+        
+        
+
+    }
+    
+    function addParaCount(x, y){
+        var newele = queryUserParameters.cloneNode(false);
+        newele.style.display = "inline";
+        newele.style.left = ""+ (x-5) +"px";
+        newele.style.top = ""+ (y+5) +"px";
+        newele.appendChild(count.cloneNode(true));
+        main.appendChild(newele);
     }
     
     
@@ -299,64 +349,52 @@
     }
     
     
-    <!-- display all fields of twtUser -->
+    // display all fields of twtUser
     
     function drawTwtUserFields(event){
         
         var obj = event.target;
         
         addBigCircle(obj.x + 300, obj.y, "timeline", tweetColor);
-        addArrow(obj.x + 50, obj.y, obj.x + 240, obj.y, timeline);
+        addArrow(obj.x + 65, obj.y, obj.x + 235, obj.y, timeline);
         
         addBigCircle(obj.x + 212, obj.y + 212, "friends", twtUserColor);
-        addArrow(obj.x + 35, obj.y + 35, obj.x + 169, obj.y + 169, friends);
+        addArrow(obj.x + 44, obj.y + 44, obj.x + 166, obj.y + 166, friends);
         
         addBigCircle(obj.x, obj.y + 300, "followers", "red");
-        addArrow(obj.x, obj.y + 50, obj.x, obj.y + 240, followers);
+        addArrow(obj.x, obj.y + 65, obj.x, obj.y + 235, followers);
         
         userContainer = new createjs.Container();
         
         addSmallCircle(obj.x, obj.y - 95, "id", userContainer);
-        
         addSmallCircle(obj.x + 38, obj.y - 87, "id_str", userContainer);
-        
         addSmallCircle(obj.x + 70, obj.y - 64, "name", userContainer);
-        
         addSmallCircle(obj.x + 90, obj.y - 29, "screen_name", userContainer);
-        
         addSmallCircle(obj.x + 94, obj.y + 10, "description", userContainer);
         
         <!-- pivot -->
         addSmallCircle(obj.x + 82, obj.y + 48, "created_at", userContainer);
-        
         addSmallCircle(obj.x + 56, obj.y + 77, "profile_image_url", userContainer);
-        
         addSmallCircle(obj.x + 19, obj.y + 93, "url", userContainer);
-        
         addSmallCircle(obj.x - 19, obj.y + 93, "location", userContainer);
-        
         addSmallCircle(obj.x - 56, obj.y + 77, "tweets_count", userContainer);
         
         <!-- pivot -->
         addSmallCircle(obj.x - 82, obj.y + 48, "followers_count", userContainer);
-        
         addSmallCircle(obj.x - 94, obj.y + 10, "listed_count", userContainer);
-        
         addSmallCircle(obj.x - 90, obj.y - 29, "favourites_count", userContainer);
-        
         addSmallCircle(obj.x - 70, obj.y - 64, "statuses_count", userContainer);
-        
         addSmallCircle(obj.x - 38, obj.y - 87, "timezone", userContainer);
       
         stage.addChild(userContainer);
         stage.update();
     }
     
-    <!-- display all fields of twtGeo -->
+    // display all fields of twtGeo
     function drawTwtGeoFields(event){
         var obj = event.target;
         addBigCircle(obj.x + 300, obj.y, "contained_within", twtGeoColor);
-        addArrow(obj.x + 50, obj.y, obj.x + 250, obj.y, contained_within);
+        addArrow(obj.x + 65, obj.y, obj.x + 235, obj.y, contained_within);
         
         geoContainer = new createjs.Container();
         addSmallCircle(obj.x, obj.y - 95, "attributes", geoContainer);
@@ -372,7 +410,7 @@
         
     }
     
-    <!-- called when "timeline" clicked -->
+    // called when "timeline" clicked
     function handleClickTimeline(event){
         stage.removeChild(userContainer);
         stage.removeChild(friends);
@@ -381,7 +419,7 @@
         drawTweetFields(event);
     }
     
-    <!-- called when "friends" clicked -->
+    // called when "friends" clicked
     function handleClickFriends(event){
         stage.removeChild(userContainer);
         stage.removeChild(timeline);
@@ -390,7 +428,7 @@
         drawTwtUserFields(event);
     }
     
-    <!-- called when "followers" clicked -->
+    // called when "followers" clicked
     function handleClickFollowers(event){
         stage.removeChild(userContainer);
         stage.removeChild(timeline);
@@ -399,7 +437,7 @@
         drawTwtUserFields(event);
     }
     
-    <!-- called when "user" clicked -->
+    // called when "user" clicked
     function handleClickUser(event){
         stage.removeChild(tweetContainer);
         stage.removeChild(entities);
@@ -408,7 +446,7 @@
         drawTwtUserFields(event);
     }
     
-    <!-- called when "entities" clicked TODO: need to check parent -->
+    // called when "entities" clicked TODO: need to check parent
     function handleClickEntities(event){
         stage.removeChild(tweetContainer);
         stage.removeChild(user);
@@ -417,7 +455,7 @@
         drawTwtEntityFields(event);
     }
     
-    <!-- called when "retweet" clicked -->
+    // called when "retweet" clicked
     function handleClickRetweet(event){
         stage.removeChild(tweetContainer);
         stage.removeChild(user);
@@ -426,7 +464,7 @@
         drawRetweetFields(event);
     }
     
-    <!-- called when "user_mentions" clicked -->
+    // called when "user_mentions" clicked
     function handleClickUserMentions(event){
         stage.removeChild(twtEntityContainer);
         stage.update();
@@ -434,7 +472,7 @@
 
     }
     
-    <!-- called when "retweeted_status" clicked -->
+    // called when "retweeted_status" clicked
     function handleClickRetweetedStatus(event){
         stage.removeChild(retweetContainer);
         stage.removeChild(entities);
@@ -450,20 +488,19 @@
         drawTwtGeoFields(event);
     }
     
-    <!-- display all fields of tweet -->
-    
+    // display all fields of tweet
     function drawTweetFields(event){
         
         var obj = event.target;
         
         addBigCircle(obj.x + 300, obj.y, "user", "red");
-        addArrow(obj.x + 50, obj.y, obj.x + 250, obj.y, user);
+        addArrow(obj.x + 65, obj.y, obj.x + 235, obj.y, user);
         
         addBigCircle(obj.x + 212, obj.y + 212, "entities", "yellow");
-        addArrow(obj.x + 35, obj.y + 35, obj.x + 175, obj.y + 175, entities);
+        addArrow(obj.x + 35, obj.y + 35, obj.x + 166, obj.y + 166, entities);
         
         addBigCircle(obj.x, obj.y + 300, "retweet", "green");
-        addArrow(obj.x, obj.y + 50, obj.x, obj.y + 250, retweet);
+        addArrow(obj.x, obj.y + 65, obj.x, obj.y + 235, retweet);
 
         tweetContainer = new createjs.Container();
         
@@ -492,7 +529,7 @@
         var obj = event.target;
         
         addBigCircle(obj.x + 300, obj.y, "user_mentions", "red");
-        addArrow(obj.x + 50, obj.y, obj.x + 250, obj.y, user_mentions);
+        addArrow(obj.x + 65, obj.y, obj.x + 235, obj.y, user_mentions);
         
         twtEntityContainer = new createjs.Container();
         
@@ -507,20 +544,18 @@
         var obj = event.target;
         
         addBigCircle(obj.x + 300, obj.y, "entities", "yellow");
-        addArrow(obj.x + 50, obj.y, obj.x + 250, obj.y, entities);
+        addArrow(obj.x + 65, obj.y, obj.x + 235, obj.y, entities);
         
         addBigCircle(obj.x + 212, obj.y + 212, "retweeted_status", "#1e90ff");
-        addArrow(obj.x + 35, obj.y + 35, obj.x + 175, obj.y + 175, retweeted_status);
+        addArrow(obj.x + 44, obj.y + 44, obj.x + 166, obj.y + 166, retweeted_status);
         
         addBigCircle(obj.x, obj.y + 300, "user", "red");
-        addArrow(obj.x, obj.y + 50, obj.x, obj.y + 250, user);
+        addArrow(obj.x, obj.y + 65, obj.x, obj.y + 235, user);
         
         retweetContainer = new createjs.Container();
         
         addSmallCircle(obj.x, obj.y - 95, "id", retweetContainer);
-        
         addSmallCircle(obj.x + 82, obj.y + 48, "created_at", retweetContainer);
-        
         addSmallCircle(obj.x - 82, obj.y + 48, "in_reply_to_screen_name", retweetContainer)
         
         stage.addChild(retweetContainer);
@@ -528,7 +563,7 @@
 
     }
     
-    <!-- double the size of canvas width -->
+    // double the size of canvas width
     function resizeWidth(){
         canvas = document.getElementById("myCanvas");
         canvas.width = 2 * canvas.width;
@@ -536,7 +571,7 @@
         alert("width resize to " + currWidth);
     }
     
-    <!-- double the size of canvas height -->
+    // double the size of canvas height
     function resizeHeight(){
         canvas = document.getElementById("myCanvas");
         canvas.height = 2 * canvas.height;
@@ -549,17 +584,32 @@
 </head>
 
 <body onload="init();">
-    <div class="main">
-        <canvas id="myCanvas" width="1200" height="600">
-        </canvas>
-        <div id='form' style="display:none; position: absolute; z-index:1; left: 240px; top: 180px; width:170px; height:20px;">
-            <div ng-app="myApp" ng-controller="myCtrl">
-                <p>q: <input ng-model="keyword" type='text' style="width: 50%;" />{{keyword}}</p>
-                <div id="common">
-                    <p>count: <input type='number' name='Count' min='0' style="width: 30%;" /></p>
-                </div>
-                <p>page: <input type='number' name='Count' min='0' style="width: 30%;" /></p>
-            </div>
+    <div id="main" class="main">
+        <canvas id="myCanvas" width="1200" height="550"></canvas>
+        
+        <div id='user' ng-app="myApp" ng-controller="myCtrl">
+            <p>q: <input ng-model="keyword" type='text' style="width: 40%;" />{{keyword}}</p>
+            <p id="common">count: <input type='number' name='count' min='0' style="width: 25%;" /></p>
+            <p>page: <input type='number' name='page' min='0' style="width: 25%;" /></p>
+        </div>
+        
+        <div id='tweet' ng-app="myApp" ng-controller="myCtrl">
+            <p>q: <input type='text' style="width: 40%;" /></p>
+            <p>count: <input type='number' name='count' min='0' style="width: 25%;" /></p>
+            <p>geocode: <input type='text' style="width: 40%;" /></p>
+            <p>result_type: <input type='text' style="width: 40%;" /></p>
+            <p>locale: <input type='text' style="width: 40%;" /></p>
+            <p>until: <input type='text' style="width: 40%;" /></p>
+        </div>
+        
+        <div id='geo' ng-app="myApp" ng-controller="myCtrl" style="display:none; position: absolute; z-index:1; left: 240px; top: 180px; width:170px; height:60px; overflow: scroll;">
+            <p>query: <input type='text' style="width: 40%;" /></p>
+            <p>ip: <input type='text' style="width: 40%;" /></p>
+            <p>lat: <input type='text' style="width: 40%;" /></p>
+            <p>long: <input type='text' style="width: 40%;" /></p>
+            <p>granularity: <input type='text' style="width: 40%;" /></p>
+            <p>accuracy: <input type='text' style="width: 40%;" /></p>
+            <p>max_results: <input type='number' style="width: 25%;" /></p>
         </div>
     </div>
     
