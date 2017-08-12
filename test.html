@@ -4,15 +4,14 @@
     <title>test</title>
     <link rel="stylesheet" type="text/css" href="test.css">
     
-    <!-- import AngularJS-->
-    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.4/angular.min.js"></script>
+    <!-- import D3.js-->
+    <script src="https://d3js.org/d3.v4.min.js"></script>
     
     <!-- import EaselJS -->
     <script src="http://code.createjs.com/easeljs-0.8.1.min.js"></script>
     
 	<script>
-        
-		var stage;
+        var stage;
         var canvas;
         
         var userContainer;
@@ -101,15 +100,15 @@
             
             stage.addChild(static);
             
-            txt = "{twitter{  }}";
-            mid = "";
+            txt = "{twitter{ }}";
+            mid = " ";
             
             media = new createjs.Text("stackExchange\n\nmediaWiki\n\ninstagram\n\npinterest\n\ntwitter\n\nfacebook\n\nflickr\n\nspotify\n\nyoutube\n\nreddit\n\nweibo\n\ntumblr", "15px Arial", "black");
             media.x = 20;
             media.y = 120;
             
             // display query string below canvas
-            para = document.createElement("p");
+            para = document.getElementById("string");
             var txtNode = document.createTextNode(txt);
             para.appendChild(txtNode);
             main.appendChild(para);
@@ -140,7 +139,7 @@
         label.x = circle.x - 50;
         label.y = circle.y - 35;
         
-        txt = "{  twitter{    queryUser(q:&quot; &quot;){" + mid + "    }  }}";
+        txt = "{ twitter{ queryUser(q:&quot;&quot; count:3 page:5){ } } }";
         para.innerHTML = txt;
         
         stage.addChild(circle, label);
@@ -169,7 +168,7 @@
         label.x = circle.x - 50;
         label.y = circle.y - 35;
         
-        txt = "{\n  twitter{\n    queryTweet(){\n" + mid + "    }\n  }\n}";
+        txt = "{ twitter{ queryTweet(q:&quot;&quot; count:3 result_type:&quot;mixed&quot; ){ } } }";
         para.innerHTML = txt;
         
         stage.addChild(circle, label);
@@ -223,13 +222,19 @@
     
     function changeQuery(event){
         event.target.alpha = 1.5 - event.target.alpha;
-        
-        if(event.target.state != 1){ // if this field is not selected yet
-            mid += event.target.name + " ";
-            event.target.state = 1;
+        var str = para.innerHTML;
+        var field = event.target.name;
+        if(event.target.alpha == 1){
+            mid += field + " ";
         }
-        txt = "{  twitter{    queryUser(){" + mid + "    }  }}";
-        para.innerHTML = txt;
+        else{
+            var i = mid.indexOf(field);
+            mid = mid.substring(0, i) + mid.substring(i+field.length);
+        }
+        
+        var before = str.lastIndexOf("{");
+        var after = str.indexOf("}");
+        para.innerHTML = str.substring(0, before+2) + mid + str.substring(after);
         stage.update();
     }
     
@@ -325,10 +330,6 @@
                 stage.addChild(contained_within);
                 break;
         }
-        
-        
-        
-
     }
     
     function addParaCount(x, y){
@@ -336,10 +337,23 @@
         newele.style.display = "inline";
         newele.style.left = ""+ (x-5) +"px";
         newele.style.top = ""+ (y+5) +"px";
-        newele.appendChild(count.cloneNode(true));
+        var cl = count.cloneNode(false);
+        var txtNode = document.createTextNode("count:");
+        var ipt = document.createElement("INPUT");
+        ipt.setAttribute("type", "number");
+        ipt.setAttribute("value", 3);
+        ipt.setAttribute("min", 0);
+        ipt.style.width = "25%";
+        ipt.setAttribute("onchange", "getCount(this.value)");
+        cl.appendChild(txtNode);
+        cl.appendChild(ipt);
+        newele.appendChild(cl);
         main.appendChild(newele);
     }
     
+    function getCount(value){
+        
+    }
     
     function addArrow(fromx, fromy, tox, toy, container){
         var lineShape = new createjs.Shape();
@@ -366,26 +380,24 @@
         
         userContainer = new createjs.Container();
         
+        // 16 basic fields
         addSmallCircle(obj.x, obj.y - 95, "id", userContainer);
-        addSmallCircle(obj.x + 38, obj.y - 87, "id_str", userContainer);
-        addSmallCircle(obj.x + 70, obj.y - 64, "name", userContainer);
-        addSmallCircle(obj.x + 90, obj.y - 29, "screen_name", userContainer);
-        addSmallCircle(obj.x + 94, obj.y + 10, "description", userContainer);
+        addSmallCircle(obj.x + 36, obj.y - 88, "id_str", userContainer);
+        addSmallCircle(obj.x + 67, obj.y - 67, "name", userContainer);
+        addSmallCircle(obj.x + 88, obj.y - 36, "screen_name", userContainer);
+        addSmallCircle(obj.x + 95, obj.y, "description", userContainer);
+        addSmallCircle(obj.x + 88, obj.y + 36, "created_at", userContainer);
+        addSmallCircle(obj.x + 67, obj.y + 67, "profile_image_url", userContainer);
+        addSmallCircle(obj.x + 36, obj.y + 88, "url", userContainer);
+        addSmallCircle(obj.x, obj.y + 95, "location", userContainer);
+        addSmallCircle(obj.x - 36, obj.y + 88, "tweets_count", userContainer);
+        addSmallCircle(obj.x - 67, obj.y + 67, "followers_count", userContainer);
+        addSmallCircle(obj.x - 88, obj.y + 36, "friends_count", userContainer);
+        addSmallCircle(obj.x - 95, obj.y, "listed_count", userContainer);
+        addSmallCircle(obj.x - 88, obj.y - 36, "favourites_count", userContainer);
+        addSmallCircle(obj.x - 67, obj.y - 67, "statuses_count", userContainer);
+        addSmallCircle(obj.x - 36, obj.y - 88, "time_zone", userContainer);
         
-        <!-- pivot -->
-        addSmallCircle(obj.x + 82, obj.y + 48, "created_at", userContainer);
-        addSmallCircle(obj.x + 56, obj.y + 77, "profile_image_url", userContainer);
-        addSmallCircle(obj.x + 19, obj.y + 93, "url", userContainer);
-        addSmallCircle(obj.x - 19, obj.y + 93, "location", userContainer);
-        addSmallCircle(obj.x - 56, obj.y + 77, "tweets_count", userContainer);
-        
-        <!-- pivot -->
-        addSmallCircle(obj.x - 82, obj.y + 48, "followers_count", userContainer);
-        addSmallCircle(obj.x - 94, obj.y + 10, "listed_count", userContainer);
-        addSmallCircle(obj.x - 90, obj.y - 29, "favourites_count", userContainer);
-        addSmallCircle(obj.x - 70, obj.y - 64, "statuses_count", userContainer);
-        addSmallCircle(obj.x - 38, obj.y - 87, "timezone", userContainer);
-      
         stage.addChild(userContainer);
         stage.update();
     }
@@ -397,6 +409,7 @@
         addArrow(obj.x + 65, obj.y, obj.x + 235, obj.y, contained_within);
         
         geoContainer = new createjs.Container();
+        // 8 basic fields
         addSmallCircle(obj.x, obj.y - 95, "attributes", geoContainer);
         addSmallCircle(obj.x + 67, obj.y - 67, "country", geoContainer);
         addSmallCircle(obj.x + 95, obj.y, "country_code", geoContainer);
@@ -410,12 +423,22 @@
         
     }
     
+    function addBigToQuery(field){
+        mid = " ";
+        var str = para.innerHTML;
+        var i = str.indexOf("}");
+        para.innerHTML = str.substring(0,i) + field + "{ }" + str.substring(i);
+    }
+    
     // called when "timeline" clicked
     function handleClickTimeline(event){
         stage.removeChild(userContainer);
         stage.removeChild(friends);
         stage.removeChild(followers);
         stage.update();
+        
+        addBigToQuery("timeline(count:3)");
+        
         drawTweetFields(event);
     }
     
@@ -425,6 +448,9 @@
         stage.removeChild(timeline);
         stage.removeChild(followers);
         stage.update();
+        
+        addBigToQuery("friends(count:3)");
+        
         drawTwtUserFields(event);
     }
     
@@ -434,6 +460,8 @@
         stage.removeChild(timeline);
         stage.removeChild(friends);
         stage.update();
+        
+        addBigToQuery("followers(count:3)");
         drawTwtUserFields(event);
     }
     
@@ -452,6 +480,7 @@
         stage.removeChild(user);
         stage.removeChild(retweet);
         stage.update();
+        addBigToQuery("entities");
         drawTwtEntityFields(event);
     }
     
@@ -461,6 +490,7 @@
         stage.removeChild(user);
         stage.removeChild(entities);
         stage.update();
+        addBigToQuery("retweet(count:3)");
         drawRetweetFields(event);
     }
     
@@ -468,6 +498,7 @@
     function handleClickUserMentions(event){
         stage.removeChild(twtEntityContainer);
         stage.update();
+        addBigToQuery("user_mentions");
         drawTwtUserFields(event);
 
     }
@@ -497,27 +528,21 @@
         addArrow(obj.x + 65, obj.y, obj.x + 235, obj.y, user);
         
         addBigCircle(obj.x + 212, obj.y + 212, "entities", "yellow");
-        addArrow(obj.x + 35, obj.y + 35, obj.x + 166, obj.y + 166, entities);
+        addArrow(obj.x + 44, obj.y + 44, obj.x + 166, obj.y + 166, entities);
         
         addBigCircle(obj.x, obj.y + 300, "retweet", "green");
         addArrow(obj.x, obj.y + 65, obj.x, obj.y + 235, retweet);
 
         tweetContainer = new createjs.Container();
         
+        // 8 basic fields
         addSmallCircle(obj.x, obj.y - 95, "id", tweetContainer);
-        
         addSmallCircle(obj.x + 67, obj.y - 67, "id_str", tweetContainer);
-        
         addSmallCircle(obj.x + 95, obj.y, "created_at", tweetContainer);
-        
         addSmallCircle(obj.x + 67, obj.y + 67, "text", tweetContainer);
-        
         addSmallCircle(obj.x, obj.y + 95, "retweet_count", tweetContainer);
-        
         addSmallCircle(obj.x - 67, obj.y + 67, "in_reply_to_user_id_str", tweetContainer);
-        
         addSmallCircle(obj.x - 95, obj.y, "in_reply_to_status_id_str", tweetContainer);
-        
         addSmallCircle(obj.x - 67, obj.y - 67, "in_reply_to_screen_name", tweetContainer);
         
         stage.addChild(tweetContainer);
@@ -533,6 +558,7 @@
         
         twtEntityContainer = new createjs.Container();
         
+        // 2 basic fields
         addSmallCircle(obj.x, obj.y - 95, "urls", twtEntityContainer);
         addSmallCircle(obj.x - 95, obj.y, "hashtags", twtEntityContainer);
         
@@ -554,9 +580,16 @@
         
         retweetContainer = new createjs.Container();
         
+        // 9 basic fields
         addSmallCircle(obj.x, obj.y - 95, "id", retweetContainer);
+        addSmallCircle(obj.x + 61, obj.y - 73, "id_str", retweetContainer);
+        addSmallCircle(obj.x + 94, obj.y - 16, "text", retweetContainer);
         addSmallCircle(obj.x + 82, obj.y + 48, "created_at", retweetContainer);
-        addSmallCircle(obj.x - 82, obj.y + 48, "in_reply_to_screen_name", retweetContainer)
+        addSmallCircle(obj.x + 32, obj.y + 89, "in_reply_to_status_id_str", retweetContainer);
+        addSmallCircle(obj.x - 32, obj.y + 89, "in_reply_to_user_id_str", retweetContainer);
+        addSmallCircle(obj.x - 82, obj.y + 48, "in_reply_to_screen_name", retweetContainer);
+        addSmallCircle(obj.x - 94, obj.y - 16, "favorite_count", retweetContainer);
+        addSmallCircle(obj.x - 61, obj.y - 73, "retweet_count", retweetContainer);
         
         stage.addChild(retweetContainer);
         stage.update();
@@ -584,40 +617,102 @@
 </head>
 
 <body onload="init();">
-    <div id="main" class="main">
+    <div id="main">
         <canvas id="myCanvas" width="1200" height="550"></canvas>
         
-        <div id='user' ng-app="myApp" ng-controller="myCtrl">
-            <p>q: <input ng-model="keyword" type='text' style="width: 40%;" />{{keyword}}</p>
-            <p id="common">count: <input type='number' name='count' min='0' style="width: 25%;" /></p>
-            <p>page: <input type='number' name='page' min='0' style="width: 25%;" /></p>
+        <div id='user'>
+            <p>q: <input type='text' style="width: 40%;" onchange="getKeyword(this.value)"/></p>
+            <p id="common">count: <input type='number' name='count' min='0' style="width: 25%;" value='3' onchange="getCount(this.value)"/></p>
+            <p>page: <input type='number' name='page' min='0' style="width: 25%;" value='5' onchange="getPage(this.value)"/></p>
         </div>
         
-        <div id='tweet' ng-app="myApp" ng-controller="myCtrl">
-            <p>q: <input type='text' style="width: 40%;" /></p>
-            <p>count: <input type='number' name='count' min='0' style="width: 25%;" /></p>
-            <p>geocode: <input type='text' style="width: 40%;" /></p>
-            <p>result_type: <input type='text' style="width: 40%;" /></p>
-            <p>locale: <input type='text' style="width: 40%;" /></p>
-            <p>until: <input type='text' style="width: 40%;" /></p>
+        <div id='tweet'>
+            <p>q: <input type='text' style="width: 40%;" onchange="getKeyword(this.value)"/></p>
+            <p>count: <input type='number' name='count' min='0' style="width: 25%;" onchange="getCountTweet(this.value)"/></p>
+            <p>geocode: <input type='text' style="width: 40%;" onchange="getOptionalParas('geocode:', this.value)" /></p>
+            <p>result_type: <select onchange="getType(this.value)">
+                <option value="mixed">mixed</option>
+                <option value="recent">recent</option>
+                <option value="popular">popular</option></select></p>
+            <p>locale: <input type='text' style="width: 40%;" onchange="getOptionalParas('locale:', this.value)"/></p>
+            <p>until: <input type='date' style="width: 90%;" onchange="getOptionalParas('until:', this.value)"/></p>
         </div>
         
-        <div id='geo' ng-app="myApp" ng-controller="myCtrl" style="display:none; position: absolute; z-index:1; left: 240px; top: 180px; width:170px; height:60px; overflow: scroll;">
-            <p>query: <input type='text' style="width: 40%;" /></p>
-            <p>ip: <input type='text' style="width: 40%;" /></p>
-            <p>lat: <input type='text' style="width: 40%;" /></p>
-            <p>long: <input type='text' style="width: 40%;" /></p>
-            <p>granularity: <input type='text' style="width: 40%;" /></p>
-            <p>accuracy: <input type='text' style="width: 40%;" /></p>
-            <p>max_results: <input type='number' style="width: 25%;" /></p>
+        <div id='geo'>
+            <p>query: <input type='text' style="width: 40%;" onchange="getOptionalParas('query:', this.value)"/></p>
+            <p>ip: <input type='text' style="width: 40%;" onchange="getOptionalParas('ip:', this.value)"/></p>
+            <p>lat: <input type='text' style="width: 40%;" onchange="getOptionalParas('lat:', this.value)"/></p>
+            <p>long: <input type='text' style="width: 40%;" onchange="getOptionalParas('long:', this.value)"/></p>
+            <p>granularity: <select onchange="getOptionalParas('granularity:', this.value)">
+                <option value="neighborhood">neighborhood</option>
+                <option value="poi">poi</option>
+                <option value="city">city</option>
+                <option value="admin">admin</option>
+                <option value="country">country</option></select></p>
+            <p>accuracy: <input type='text' style="width: 40%;" onchange="getOptionalParas('accuracy:', this.value)"/></p>
+            <p>max_results: <input type='number' style="width: 25%;" onchange="getOptionalParas('max_results:', this.value)"/></p>
         </div>
     </div>
     
+    <p id="string"></p>
+    
     <script>
-        var app = angular.module('myApp', []);
-        app.controller('myCtrl', function($scope) {
-            $scope.keyword = "";
-        });
+    var s, str;
+    
+    function getKeyword(val){
+        s = document.getElementById("string");
+        str = s.innerHTML;
+        var before = str.indexOf("q:");
+        var after = str.indexOf(" count");
+        s.innerHTML = str.substring(0, before+3) + val + str.substring(after-1);
+    }
+    
+    function getCount(val){
+        s = document.getElementById("string");
+        str = s.innerHTML;
+        var before = str.indexOf("count:");
+        var after = str.indexOf(" page:");
+        s.innerHTML = str.substring(0, before+6) + val + str.substring(after);
+        
+    }
+    
+    function getPage(val){
+        s = document.getElementById("string");
+        str = s.innerHTML;
+        var before = str.indexOf("page:");
+        var after = str.indexOf(")");
+        s.innerHTML = str.substring(0, before+5) + val + str.substring(after);
+    }
+    
+    function getCountTweet(val){
+        s = document.getElementById("string");
+        str = s.innerHTML;
+        var before = str.indexOf("count:");
+        var after = str.indexOf(' ', before+6);
+        s.innerHTML = str.substring(0, before+6) + val + str.substring(after);
+    }
+    
+    function getType(val){
+        s = document.getElementById("string");
+        str = s.innerHTML;
+        var before = str.indexOf("type");
+        var after = str.indexOf('"', before+6);
+        s.innerHTML = str.substring(0, before+6) + val + str.substring(after);
+    }
+    
+    function getOptionalParas(key, val){
+        s = document.getElementById("string");
+        str = s.innerHTML;
+        if(str.indexOf(key) == -1){
+            var i = str.indexOf(")");
+            s.innerHTML = str.substring(0, i) + key + "&quot;" + val + "&quot; " + str.substring(i);
+        }
+        else{
+            var before = str.indexOf(key);
+            var after = str.indexOf('"', before+key.length+1);
+            s.innerHTML = str.substring(0, before+key.length+1) + val + str.substring(after);
+        }
+    }
     </script>
 
 </body>
